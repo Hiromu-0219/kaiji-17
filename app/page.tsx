@@ -209,7 +209,11 @@ export default function Home() {
               <button className={settings.soundEnabled ? "on" : ""} onClick={() => setSettings((s) => ({ ...s, soundEnabled: !s.soundEnabled }))}>効果音 <span>{settings.soundEnabled ? "ON" : "OFF"}</span></button>
               <button className={settings.vibrationEnabled ? "on" : ""} onClick={() => setSettings((s) => ({ ...s, vibrationEnabled: !s.vibrationEnabled }))}>振動 <span>{settings.vibrationEnabled ? "ON" : "OFF"}</span></button>
             </div>
-            <button className="start-button" onClick={runCountdown}>手作り開始 <span>→</span></button>
+            <button className="start-button" onClick={runCountdown} aria-label="タイマーを開始">
+              <small>設定を確定して</small>
+              タイマーを開始
+              <span>→</span>
+            </button>
           </div>
         </section>
         <div className="portrait-guard">
