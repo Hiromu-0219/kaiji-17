@@ -212,6 +212,11 @@ export default function Home() {
             <button className="start-button" onClick={runCountdown}>手作り開始 <span>→</span></button>
           </div>
         </section>
+        <div className="portrait-guard">
+          <div className="rotate-icon">↻</div>
+          <h2>端末を横向きにしてください</h2>
+          <p>十七歩は横向きの卓上表示に最適化されています</p>
+        </div>
       </main>
     );
   }
