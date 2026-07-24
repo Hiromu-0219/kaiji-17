@@ -47,6 +47,7 @@ export default function Home() {
   const [overlay, setOverlay] = useState(false);
   const [confirm, setConfirm] = useState<"reset" | "setup" | null>(null);
   const [lastMinuteShown, setLastMinuteShown] = useState(false);
+  const [windsConcealed, setWindsConcealed] = useState(false);
   const endAt = useRef(0);
   const pausedAt = useRef(0);
   const wakeLock = useRef<{ release: () => Promise<void> } | null>(null);
@@ -170,6 +171,7 @@ export default function Home() {
       right = winds[Math.floor(Math.random() * winds.length)];
     } while (left === right);
     setSettings((s) => ({ ...s, leftWind: left, rightWind: right }));
+    setWindsConcealed(true);
   };
 
   const progress = settings.durationSec ? remaining / settings.durationSec : 0;
@@ -186,15 +188,24 @@ export default function Home() {
           {(["left", "right"] as const).map((side) => (
             <div className="player-panel" key={side}>
               <p className="panel-label">{side === "left" ? "左プレイヤー" : "右プレイヤー"}</p>
-              <div className="wind-preview"><span>{settings[side === "left" ? "leftWind" : "rightWind"]}</span><small>自風</small></div>
+              <div className={`wind-preview ${windsConcealed ? "concealed" : ""}`}>
+                <span>{windsConcealed ? "?" : settings[side === "left" ? "leftWind" : "rightWind"]}</span>
+                <small>{windsConcealed ? "開始まで非公開" : "自風"}</small>
+              </div>
               <div className="wind-buttons" role="group" aria-label={`${side === "left" ? "左" : "右"}の自風`}>
                 {winds.map((wind) => (
-                  <button key={wind} className={settings[side === "left" ? "leftWind" : "rightWind"] === wind ? "active" : ""} onClick={() => setSettings((s) => ({ ...s, [side === "left" ? "leftWind" : "rightWind"]: wind }))}>{wind}</button>
+                  <button key={wind} className={!windsConcealed && settings[side === "left" ? "leftWind" : "rightWind"] === wind ? "active" : ""} onClick={() => {
+                    setWindsConcealed(false);
+                    setSettings((s) => ({ ...s, [side === "left" ? "leftWind" : "rightWind"]: wind }));
+                  }}>{wind}</button>
                 ))}
               </div>
             </div>
           ))}
-          <button className="random-button" onClick={randomize}><span>⟳</span> 重複なしでランダム抽選</button>
+          <button className={`random-button ${windsConcealed ? "drawn" : ""}`} onClick={randomize}>
+            <span>{windsConcealed ? "✓" : "⟳"}</span>
+            {windsConcealed ? "抽選済み・開始時に公開" : "重複なしでランダム抽選"}
+          </button>
           <div className="center-settings">
             <label className="setting-label">制限時間</label>
             <div className="duration-control">
@@ -202,7 +213,8 @@ export default function Home() {
               <output>{formatTime(settings.durationSec)}</output>
               <button aria-label="30秒増やす" onClick={() => setSettings((s) => ({ ...s, durationSec: Math.min(600, s.durationSec + 30) }))}>+30</button>
             </div>
-            <label className="memo-label">ローカルルール・メモ
+            <label className="memo-label">
+              <span>ローカルルール・メモ <b>{settings.memo.length}/200</b></span>
               <input maxLength={200} value={settings.memo} placeholder="例：ダブル役満なし / 流局時…" onChange={(e) => setSettings((s) => ({ ...s, memo: e.target.value }))} />
             </label>
             <div className="toggles">
