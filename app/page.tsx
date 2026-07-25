@@ -48,6 +48,8 @@ export default function Home() {
   const [confirm, setConfirm] = useState<"reset" | "setup" | null>(null);
   const [lastMinuteShown, setLastMinuteShown] = useState(false);
   const [windsConcealed, setWindsConcealed] = useState(false);
+  const [memoEditorOpen, setMemoEditorOpen] = useState(false);
+  const [memoDraft, setMemoDraft] = useState("");
   const endAt = useRef(0);
   const pausedAt = useRef(0);
   const wakeLock = useRef<{ release: () => Promise<void> } | null>(null);
@@ -177,6 +179,40 @@ export default function Home() {
   const progress = settings.durationSec ? remaining / settings.durationSec : 0;
   const urgency = remaining <= 10 ? "critical" : remaining <= 30 ? "danger" : remaining <= 60 ? "warning" : "normal";
 
+  if (memoEditorOpen) {
+    return (
+      <main className="memo-editor-screen">
+        <header className="memo-editor-header">
+          <div>
+            <span>LOCAL RULES</span>
+            <h1>メモを編集</h1>
+          </div>
+          <button aria-label="メモ編集をキャンセル" onClick={() => setMemoEditorOpen(false)}>×</button>
+        </header>
+        <section className="memo-editor-body">
+          <label htmlFor="memo-editor">対局中に確認するローカルルール</label>
+          <textarea
+            id="memo-editor"
+            autoFocus
+            maxLength={200}
+            value={memoDraft}
+            placeholder={"例：ダブル役満なし\n流局時は親流れ\n赤ドラは各1枚"}
+            onChange={(e) => setMemoDraft(e.target.value)}
+          />
+          <div className="memo-editor-count">{memoDraft.length} / 200</div>
+          <p>保存したメモはタイマー画面の下部に表示されます。</p>
+        </section>
+        <footer className="memo-editor-actions">
+          <button onClick={() => setMemoEditorOpen(false)}>キャンセル</button>
+          <button onClick={() => {
+            setSettings((s) => ({ ...s, memo: memoDraft }));
+            setMemoEditorOpen(false);
+          }}>保存して戻る</button>
+        </footer>
+      </main>
+    );
+  }
+
   if (screen === "setup") {
     return (
       <main className="app-shell setup-shell">
@@ -213,10 +249,14 @@ export default function Home() {
               <output>{formatTime(settings.durationSec)}</output>
               <button aria-label="30秒増やす" onClick={() => setSettings((s) => ({ ...s, durationSec: Math.min(600, s.durationSec + 30) }))}>+30</button>
             </div>
-            <label className="memo-label">
+            <button className="memo-open-button" aria-label="メモを編集" onClick={() => {
+              setMemoDraft(settings.memo);
+              setMemoEditorOpen(true);
+            }}>
               <span>ローカルルール・メモ <b>{settings.memo.length}/200</b></span>
-              <input maxLength={200} value={settings.memo} placeholder="例：ダブル役満なし / 流局時…" onChange={(e) => setSettings((s) => ({ ...s, memo: e.target.value }))} />
-            </label>
+              <em>{settings.memo || "タップして縦画面で入力"}</em>
+              <i>編集 →</i>
+            </button>
             <div className="toggles">
               <button className={settings.soundEnabled ? "on" : ""} onClick={() => setSettings((s) => ({ ...s, soundEnabled: !s.soundEnabled }))}>効果音 <span>{settings.soundEnabled ? "ON" : "OFF"}</span></button>
               <button className={settings.vibrationEnabled ? "on" : ""} onClick={() => setSettings((s) => ({ ...s, vibrationEnabled: !s.vibrationEnabled }))}>振動 <span>{settings.vibrationEnabled ? "ON" : "OFF"}</span></button>
