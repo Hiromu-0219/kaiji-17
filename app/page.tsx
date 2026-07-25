@@ -50,6 +50,7 @@ export default function Home() {
   const [windsConcealed, setWindsConcealed] = useState(false);
   const [memoEditorOpen, setMemoEditorOpen] = useState(false);
   const [memoDraft, setMemoDraft] = useState("");
+  const [settingsDraft, setSettingsDraft] = useState<Settings>(defaults);
   const endAt = useRef(0);
   const pausedAt = useRef(0);
   const wakeLock = useRef<{ release: () => Promise<void> } | null>(null);
@@ -165,14 +166,14 @@ export default function Home() {
     releaseWakeLock();
   };
 
-  const randomize = () => {
+  const randomizeDraft = () => {
     let left: Wind;
     let right: Wind;
     do {
       left = winds[Math.floor(Math.random() * winds.length)];
       right = winds[Math.floor(Math.random() * winds.length)];
     } while (left === right);
-    setSettings((s) => ({ ...s, leftWind: left, rightWind: right }));
+    setSettingsDraft((s) => ({ ...s, leftWind: left, rightWind: right }));
     setWindsConcealed(true);
   };
 
@@ -184,28 +185,53 @@ export default function Home() {
       <main className="memo-editor-screen">
         <header className="memo-editor-header">
           <div>
-            <span>LOCAL RULES</span>
-            <h1>メモを編集</h1>
+            <span>GAME SETTINGS</span>
+            <h1>対局設定</h1>
           </div>
-          <button aria-label="メモ編集をキャンセル" onClick={() => setMemoEditorOpen(false)}>×</button>
+          <button aria-label="設定編集をキャンセル" onClick={() => setMemoEditorOpen(false)}>×</button>
         </header>
-        <section className="memo-editor-body">
-          <label htmlFor="memo-editor">対局中に確認するローカルルール</label>
-          <textarea
-            id="memo-editor"
-            autoFocus
-            maxLength={200}
-            value={memoDraft}
-            placeholder={"例：ダブル役満なし\n流局時は親流れ\n赤ドラは各1枚"}
-            onChange={(e) => setMemoDraft(e.target.value)}
-          />
-          <div className="memo-editor-count">{memoDraft.length} / 200</div>
-          <p>保存したメモはタイマー画面の下部に表示されます。</p>
+        <section className="settings-editor-body">
+          <div className="editor-section">
+            <div className="editor-section-title"><span>自風</span><button onClick={randomizeDraft}>重複なしで抽選</button></div>
+            <div className="editor-winds">
+              {(["left", "right"] as const).map((side) => (
+                <div key={side}>
+                  <label>{side === "left" ? "左プレイヤー" : "右プレイヤー"}</label>
+                  <div>
+                    {winds.map((wind) => (
+                      <button key={wind} className={!windsConcealed && settingsDraft[side === "left" ? "leftWind" : "rightWind"] === wind ? "active" : ""} onClick={() => {
+                        setWindsConcealed(false);
+                        setSettingsDraft((s) => ({ ...s, [side === "left" ? "leftWind" : "rightWind"]: wind }));
+                      }}>{wind}</button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {windsConcealed && <p className="draw-notice">抽選済み。自風はタイマー開始時に公開されます。</p>}
+          </div>
+          <div className="editor-section">
+            <span className="editor-label">制限時間</span>
+            <div className="editor-duration">
+              <button onClick={() => setSettingsDraft((s) => ({ ...s, durationSec: Math.max(30, s.durationSec - 30) }))}>−30秒</button>
+              <output>{formatTime(settingsDraft.durationSec)}</output>
+              <button onClick={() => setSettingsDraft((s) => ({ ...s, durationSec: Math.min(600, s.durationSec + 30) }))}>＋30秒</button>
+            </div>
+          </div>
+          <div className="editor-section editor-memo">
+            <label htmlFor="memo-editor">ローカルルール・メモ</label>
+            <textarea id="memo-editor" maxLength={200} value={memoDraft} placeholder={"例：ダブル役満なし\n流局時は親流れ"} onChange={(e) => setMemoDraft(e.target.value)} />
+            <div className="memo-editor-count">{memoDraft.length} / 200</div>
+          </div>
+          <div className="editor-toggles">
+            <button className={settingsDraft.soundEnabled ? "active" : ""} onClick={() => setSettingsDraft((s) => ({ ...s, soundEnabled: !s.soundEnabled }))}>効果音 {settingsDraft.soundEnabled ? "ON" : "OFF"}</button>
+            <button className={settingsDraft.vibrationEnabled ? "active" : ""} onClick={() => setSettingsDraft((s) => ({ ...s, vibrationEnabled: !s.vibrationEnabled }))}>振動 {settingsDraft.vibrationEnabled ? "ON" : "OFF"}</button>
+          </div>
         </section>
         <footer className="memo-editor-actions">
           <button onClick={() => setMemoEditorOpen(false)}>キャンセル</button>
           <button onClick={() => {
-            setSettings((s) => ({ ...s, memo: memoDraft }));
+            setSettings({ ...settingsDraft, memo: memoDraft });
             setMemoEditorOpen(false);
           }}>保存して戻る</button>
         </footer>
@@ -218,7 +244,14 @@ export default function Home() {
       <main className="app-shell setup-shell">
         <header className="brand-row">
           <div><span className="eyebrow">TWO PLAYER MAHJONG</span><h1>十七歩</h1></div>
-          <div className="edition">卓上計時盤 <b>17</b></div>
+          <div className="setup-header-actions">
+            <button className="setup-edit-button" onClick={() => {
+              setSettingsDraft(settings);
+              setMemoDraft(settings.memo);
+              setMemoEditorOpen(true);
+            }}>設定を編集</button>
+            <div className="edition">卓上計時盤 <b>17</b></div>
+          </div>
         </header>
         <section className="setup-grid">
           {(["left", "right"] as const).map((side) => (
@@ -228,38 +261,19 @@ export default function Home() {
                 <span>{windsConcealed ? "?" : settings[side === "left" ? "leftWind" : "rightWind"]}</span>
                 <small>{windsConcealed ? "開始まで非公開" : "自風"}</small>
               </div>
-              <div className="wind-buttons" role="group" aria-label={`${side === "left" ? "左" : "右"}の自風`}>
-                {winds.map((wind) => (
-                  <button key={wind} className={!windsConcealed && settings[side === "left" ? "leftWind" : "rightWind"] === wind ? "active" : ""} onClick={() => {
-                    setWindsConcealed(false);
-                    setSettings((s) => ({ ...s, [side === "left" ? "leftWind" : "rightWind"]: wind }));
-                  }}>{wind}</button>
-                ))}
-              </div>
+              <p className="wind-status">{windsConcealed ? "設定済み・開始時に公開" : "設定済み"}</p>
             </div>
           ))}
-          <button className={`random-button ${windsConcealed ? "drawn" : ""}`} onClick={randomize}>
-            <span>{windsConcealed ? "✓" : "⟳"}</span>
-            {windsConcealed ? "抽選済み・開始時に公開" : "重複なしでランダム抽選"}
-          </button>
           <div className="center-settings">
             <label className="setting-label">制限時間</label>
-            <div className="duration-control">
-              <button aria-label="30秒減らす" onClick={() => setSettings((s) => ({ ...s, durationSec: Math.max(30, s.durationSec - 30) }))}>−30</button>
-              <output>{formatTime(settings.durationSec)}</output>
-              <button aria-label="30秒増やす" onClick={() => setSettings((s) => ({ ...s, durationSec: Math.min(600, s.durationSec + 30) }))}>+30</button>
+            <output className="duration-summary">{formatTime(settings.durationSec)}</output>
+            <div className="memo-summary">
+              <span>ローカルルール・メモ</span>
+              <p>{settings.memo || "メモなし"}</p>
             </div>
-            <button className="memo-open-button" aria-label="メモを編集" onClick={() => {
-              setMemoDraft(settings.memo);
-              setMemoEditorOpen(true);
-            }}>
-              <span>ローカルルール・メモ <b>{settings.memo.length}/200</b></span>
-              <em>{settings.memo || "タップして縦画面で入力"}</em>
-              <i>編集 →</i>
-            </button>
-            <div className="toggles">
-              <button className={settings.soundEnabled ? "on" : ""} onClick={() => setSettings((s) => ({ ...s, soundEnabled: !s.soundEnabled }))}>効果音 <span>{settings.soundEnabled ? "ON" : "OFF"}</span></button>
-              <button className={settings.vibrationEnabled ? "on" : ""} onClick={() => setSettings((s) => ({ ...s, vibrationEnabled: !s.vibrationEnabled }))}>振動 <span>{settings.vibrationEnabled ? "ON" : "OFF"}</span></button>
+            <div className="status-summary" aria-label="効果音と振動の設定">
+              <span>効果音 <b>{settings.soundEnabled ? "ON" : "OFF"}</b></span>
+              <span>振動 <b>{settings.vibrationEnabled ? "ON" : "OFF"}</b></span>
             </div>
             <button className="start-button" onClick={runCountdown} aria-label="タイマーを開始">
               <small>設定を確定して</small>
