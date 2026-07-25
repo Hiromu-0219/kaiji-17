@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
 type Wind = "東" | "南" | "西" | "北";
 type Status = "idle" | "countdown" | "running" | "paused" | "finished";
@@ -179,6 +179,7 @@ export default function Home() {
 
   const progress = settings.durationSec ? remaining / settings.durationSec : 0;
   const urgency = remaining <= 10 ? "critical" : remaining <= 30 ? "danger" : remaining <= 60 ? "warning" : "normal";
+  const memoLines = settings.memo.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
 
   if (memoEditorOpen) {
     return (
@@ -299,10 +300,12 @@ export default function Home() {
         <div className="round-mark">17 STEPS <i /> THINKING TIME</div>
         {status === "finished" ? (
           <div className="finish-panel" aria-live="assertive" onClick={(e) => e.stopPropagation()}>
-            <span className="finish-kicker">THINKING TIME ENDED</span>
-            <div className="time-up">TIME UP</div>
-            <div className="timer-value">00:00</div>
-            <p className="finish-message">考慮時間終了</p>
+            <span className="finish-kicker">17 STEPS / THINKING TIME</span>
+            <div className="finish-alert">
+              <span>TIME UP</span>
+              <strong>考慮時間終了</strong>
+            </div>
+            <div className="finish-zero">00:00</div>
             <small>和了・流局を確認してください</small>
             <div className="finish-actions">
               <button onClick={resetTimer}>もう一度</button>
@@ -317,7 +320,24 @@ export default function Home() {
             {remaining <= 30 && <div className="progress"><span style={{ width: `${progress * 100}%` }} /></div>}
           </>
         )}
-        {settings.memo && <p className="timer-memo">{settings.memo}</p>}
+        {settings.memo && status !== "finished" && <p className="timer-memo">{settings.memo}</p>}
+        {status === "finished" && memoLines.length > 0 && (
+          <div className="finish-ticker" aria-label={`メモ：${memoLines.join("。")}`}>
+            <span className="ticker-label">MEMO</span>
+            <div className="ticker-window">
+              <div
+                className="ticker-track"
+                style={{ "--ticker-speed": `${Math.max(12, memoLines.join("").length * 0.35)}s` } as CSSProperties}
+              >
+                {[0, 1].map((copy) => (
+                  <div className="ticker-copy" aria-hidden={copy === 1} key={copy}>
+                    {memoLines.map((line, index) => <span key={`${copy}-${index}`}>{line}</span>)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
         {status !== "finished" && <p className="tap-hint">画面中央をタップして操作</p>}
       </section>
       <WindTile wind={settings.rightWind} side="right" />
