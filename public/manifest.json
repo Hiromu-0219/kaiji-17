@@ -4,7 +4,7 @@
   "description": "実牌で遊ぶ二人麻雀「17歩」のための横向き卓上タイマー",
   "start_url": "./",
   "display": "standalone",
-  "orientation": "landscape",
+  "orientation": "portrait",
   "background_color": "#07120f",
   "theme_color": "#07120f",
   "icons": [

@@ -43,7 +43,19 @@ h1 { font-family:serif; letter-spacing:.16em; font-size:clamp(30px,4.2vw,64px); 
 .confirm-layer{z-index:30}.confirm-box{width:min(520px,70vw);background:#eee8d5;color:#152019;padding:4dvh 3vw;text-align:center;border:7px double #9d8e68}.confirm-box h2{font:700 clamp(18px,2vw,28px) serif}.confirm-box>div{display:flex;justify-content:center;gap:1vw;margin-top:3dvh}.confirm-box button{padding:1.3dvh 2vw;border:1px solid #83795e;background:transparent}.confirm-box .confirm-action{background:#7d2b25;color:#fff;border-color:#7d2b25}.finish-flash{position:fixed;inset:0;pointer-events:none;animation:flash .7s both;z-index:3}
 .portrait-guard{display:none}
 @keyframes countPop{0%{opacity:0;transform:scale(.7)}20%{opacity:1}100%{opacity:0;transform:scale(1.15)}}@keyframes timerPulse{50%{transform:scale(1.025)}}@keyframes lastMinute{0%{opacity:0;transform:translateX(-50%) scale(.9)}15%,70%{opacity:1;transform:translateX(-50%) scale(1)}100%{opacity:0}}@keyframes flash{0%,30%{background:#fff8dfaa}100%{background:transparent}}
-@media (orientation:portrait){.app-shell>*:not(.portrait-guard){display:none!important}.portrait-guard{position:fixed;inset:0;display:grid;place-content:center;text-align:center;margin:7vw;padding:12vw 7vw;background:radial-gradient(circle at 50% 35%,#163328,#08130f 72%);border:1px solid #7a6842;box-shadow:inset 0 0 0 5px #07100d,inset 0 0 0 6px #413923,0 2dvh 6dvh #0009;z-index:99}.portrait-guard::before,.portrait-guard::after{content:"十七歩";position:absolute;left:50%;transform:translateX(-50%);color:#b9975430;font:700 13vw serif;letter-spacing:.25em;white-space:nowrap}.portrait-guard::before{top:7%}.portrait-guard::after{bottom:7%;transform:translateX(-50%) rotate(180deg)}.rotate-icon{font-size:80px;color:var(--gold);animation:rotateHint 2s ease-in-out infinite}.portrait-guard h2{font-family:serif;letter-spacing:.1em;margin:2vh 0 1vh}.portrait-guard p{color:#829087;margin:0;line-height:1.8}@keyframes rotateHint{50%{transform:rotate(90deg)}}}
+@media (orientation:portrait){
+  .app-shell{inset:auto;left:50%;top:50%;width:100dvh;height:100dvw;transform:translate(-50%,-50%) rotate(90deg);transform-origin:center}
+  .portrait-guard{display:none!important}
+  .brand-row{height:13dvw;padding-block:2dvw 1dvw}
+  .setup-grid{height:87dvw}
+  .center-settings{padding-top:16dvw;gap:1dvw}
+  .wind-preview{margin:1dvw auto}
+  .player-panel{padding-block:1dvw 5dvw}
+  .random-button{top:6dvw}
+  .start-button{bottom:2.2dvw}
+  .timer-shell{padding-block:2dvw}
+  .last-minute{top:8dvw}
+}
 @media (orientation:landscape) and (max-width:700px){.wind-buttons{grid-template-columns:repeat(2,44px);justify-content:center;gap:4px}.wind-buttons button{font-size:19px}.wind-preview{margin-block:.5dvh}.player-panel{padding-inline:1vw}}
 @media (max-height:480px){.brand-row{height:13dvh}.setup-grid{height:87dvh}.center-settings{padding-top:16dvh;gap:1dvh}.wind-preview{margin:1dvh auto}.player-panel{padding-block:1dvh 5dvh}.random-button{top:6dvh}.timer-shell{padding-block:2dvh}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
