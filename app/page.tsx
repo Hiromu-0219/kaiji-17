@@ -49,6 +49,7 @@ export default function Home() {
   const [lastMinuteShown, setLastMinuteShown] = useState(false);
   const [windsConcealed, setWindsConcealed] = useState(false);
   const [memoEditorOpen, setMemoEditorOpen] = useState(false);
+  const [rulebookOpen, setRulebookOpen] = useState(false);
   const [memoDraft, setMemoDraft] = useState("");
   const [settingsDraft, setSettingsDraft] = useState<Settings>(defaults);
   const [tickerIndex, setTickerIndex] = useState(0);
@@ -189,6 +190,27 @@ export default function Home() {
     return () => window.clearInterval(id);
   }, [memoLines.length, settings.memo, status]);
 
+  if (rulebookOpen) {
+    return (
+      <main className="rulebook-screen">
+        <header className="rulebook-header">
+          <div><span>HOW TO PLAY</span><h1>17歩 ルールブック</h1></div>
+          <button aria-label="ルールブックを閉じる" onClick={() => setRulebookOpen(false)}>×</button>
+        </header>
+        <div className="rulebook-body">
+          <p className="rulebook-lead">34枚から最強の聴牌を作り、相手の捨て牌に潜む「地雷」を待つ二人麻雀。</p>
+          <section><b>01</b><div><h2>準備</h2><p>各プレイヤーに34枚ずつ配る。自分の34枚をすべて表向きにし、制限時間内に13枚を選んで聴牌形を作る。残った21枚が自分の捨て牌候補になる。</p></div></section>
+          <section><b>02</b><div><h2>手作り</h2><p>基本ルールでは、リーチを含めて満貫以上になる手を作る。手牌は完成後に伏せ、途中で組み替えない。ドラ表示牌は対局前に決めておく。</p></div></section>
+          <section><b>03</b><div><h2>17歩の進行</h2><p>先手から交互に、捨て牌候補の中から1枚ずつ切る。牌をツモる行為や、ポン・チー・カンはない。相手が切った牌が待ち牌なら「ロン」と宣言する。</p></div></section>
+          <section><b>04</b><div><h2>勝敗</h2><p>ロンした側の勝ち。両者が17枚ずつ切っても和了がなければ流局。見逃した待ち牌によるフリテンなどは、通常のリーチ麻雀に準じて扱う。</p></div></section>
+          <section><b>05</b><div><h2>対局前に決めること</h2><p>満貫縛り、ドラ・裏ドラ、赤ドラ、役満、流局時の扱い、点数や賭け点はローカル差がある。開始前に相談し、このアプリのメモへ記録する。</p></div></section>
+          <aside>このアプリは手牌・捨て牌・点数・17巡を自動管理しません。実牌で進行し、タイマーと設定確認に使用してください。</aside>
+        </div>
+        <footer className="rulebook-footer"><button onClick={() => setRulebookOpen(false)}>ルールブックを閉じる</button></footer>
+      </main>
+    );
+  }
+
   if (memoEditorOpen) {
     return (
       <main className="memo-editor-screen">
@@ -200,6 +222,7 @@ export default function Home() {
           <button aria-label="設定編集をキャンセル" onClick={() => setMemoEditorOpen(false)}>×</button>
         </header>
         <section className="settings-editor-body">
+          <button className="rulebook-link editor-rulebook-link" onClick={() => setRulebookOpen(true)}>17歩の遊び方・ルールを確認</button>
           <div className="editor-section">
             <div className="editor-section-title"><span>自風</span><button onClick={randomizeDraft}>重複なしで抽選</button></div>
             <div className="editor-winds">
@@ -254,6 +277,7 @@ export default function Home() {
         <header className="brand-row">
           <div><span className="eyebrow">TWO PLAYER MAHJONG</span><h1>十七歩</h1></div>
           <div className="setup-header-actions">
+            <button className="rulebook-link" onClick={() => setRulebookOpen(true)}>ルール</button>
             <button className="setup-edit-button" onClick={() => {
               setSettingsDraft(settings);
               setMemoDraft(settings.memo);
