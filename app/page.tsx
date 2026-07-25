@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Wind = "東" | "南" | "西" | "北";
 type Status = "idle" | "countdown" | "running" | "paused" | "finished";
@@ -51,6 +51,7 @@ export default function Home() {
   const [memoEditorOpen, setMemoEditorOpen] = useState(false);
   const [memoDraft, setMemoDraft] = useState("");
   const [settingsDraft, setSettingsDraft] = useState<Settings>(defaults);
+  const [tickerIndex, setTickerIndex] = useState(0);
   const endAt = useRef(0);
   const pausedAt = useRef(0);
   const wakeLock = useRef<{ release: () => Promise<void> } | null>(null);
@@ -114,6 +115,7 @@ export default function Home() {
       setRemaining(next);
       if (next <= 10 && next > 0) pulse(next <= 3 ? 720 : 540, 0.06);
       if (next === 0) {
+        setTickerIndex(0);
         setStatus("finished");
         pulse(180, 0.7);
         if (settings.vibrationEnabled && "vibrate" in navigator) navigator.vibrate([180, 100, 180]);
@@ -180,6 +182,12 @@ export default function Home() {
   const progress = settings.durationSec ? remaining / settings.durationSec : 0;
   const urgency = remaining <= 10 ? "critical" : remaining <= 30 ? "danger" : remaining <= 60 ? "warning" : "normal";
   const memoLines = settings.memo.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+
+  useEffect(() => {
+    if (status !== "finished" || memoLines.length < 2) return;
+    const id = window.setInterval(() => setTickerIndex((index) => (index + 1) % memoLines.length), 7000);
+    return () => window.clearInterval(id);
+  }, [memoLines.length, settings.memo, status]);
 
   if (memoEditorOpen) {
     return (
@@ -325,16 +333,9 @@ export default function Home() {
           <div className="finish-ticker" aria-label={`メモ：${memoLines.join("。")}`}>
             <span className="ticker-label">MEMO</span>
             <div className="ticker-window">
-              <div
-                className="ticker-track"
-                style={{ "--ticker-speed": `${Math.max(12, memoLines.join("").length * 0.35)}s` } as CSSProperties}
-              >
-                {[0, 1].map((copy) => (
-                  <div className="ticker-copy" aria-hidden={copy === 1} key={copy}>
-                    {memoLines.map((line, index) => <span key={`${copy}-${index}`}>{line}</span>)}
-                  </div>
-                ))}
-              </div>
+              <p className="ticker-sentence" key={`${tickerIndex}-${memoLines[tickerIndex % memoLines.length]}`}>
+                {memoLines[tickerIndex % memoLines.length]}
+              </p>
             </div>
           </div>
         )}
