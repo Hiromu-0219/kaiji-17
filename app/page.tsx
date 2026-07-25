@@ -243,13 +243,28 @@ export default function Home() {
       <WindTile wind={settings.leftWind} side="left" />
       <section className="timer-center">
         <div className="round-mark">17 STEPS <i /> THINKING TIME</div>
-        {status === "finished" && <div className="time-up">TIME UP</div>}
-        <div className="timer-value" aria-live="polite">{formatTime(remaining)}</div>
-        {status === "paused" && <div className="paused">PAUSED</div>}
-        {remaining <= 60 && remaining > 0 && !lastMinuteShown && <button className="last-minute" onAnimationEnd={() => setLastMinuteShown(true)}>LAST 60 SECONDS</button>}
-        {remaining <= 30 && <div className="progress"><span style={{ width: `${progress * 100}%` }} /></div>}
+        {status === "finished" ? (
+          <div className="finish-panel" aria-live="assertive" onClick={(e) => e.stopPropagation()}>
+            <span className="finish-kicker">THINKING TIME ENDED</span>
+            <div className="time-up">TIME UP</div>
+            <div className="timer-value">00:00</div>
+            <p className="finish-message">考慮時間終了</p>
+            <small>和了・流局を確認してください</small>
+            <div className="finish-actions">
+              <button onClick={resetTimer}>もう一度</button>
+              <button onClick={goSetup}>設定へ戻る</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="timer-value" aria-live="polite">{formatTime(remaining)}</div>
+            {status === "paused" && <div className="paused">PAUSED</div>}
+            {remaining <= 60 && remaining > 0 && !lastMinuteShown && <button className="last-minute" onAnimationEnd={() => setLastMinuteShown(true)}>LAST 60 SECONDS</button>}
+            {remaining <= 30 && <div className="progress"><span style={{ width: `${progress * 100}%` }} /></div>}
+          </>
+        )}
         {settings.memo && <p className="timer-memo">{settings.memo}</p>}
-        <p className="tap-hint">画面中央をタップして操作</p>
+        {status !== "finished" && <p className="tap-hint">画面中央をタップして操作</p>}
       </section>
       <WindTile wind={settings.rightWind} side="right" />
 
